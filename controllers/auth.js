@@ -2,7 +2,7 @@ const User = require("../models/User");
 const { hash } = require("bcryptjs");
 
 const register = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
   if (password.length < 6) {
     return res.status(400).json({ message: "Password less than 6 characters" });
   }
@@ -17,6 +17,7 @@ const register = async (req, res, next) => {
     // if user doesn't exist, create a new user, hash the password
     const passwordHashed = await hash(password, 10);
     const newUser = new User({
+      name: name,
       email: email,
       password: passwordHashed,
     });
