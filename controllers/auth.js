@@ -1,6 +1,7 @@
+require("dotenv").config();
 const User = require("../models/User");
-const { hash } = require("bcryptjs");
-
+const { hash, compare } = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const register = async (req, res, next) => {
   const { name, email, password } = req.body;
   if (password.length < 6) {
@@ -34,4 +35,62 @@ const register = async (req, res, next) => {
   }
 };
 
-module.exports = { register };
+const login = async (req, res, next) => {
+  const { email, password } = req.body;
+  // check if username and password is provided
+  if (!email || !password) {
+    return res.status(400).json({
+      message: "Username or Password not present",
+    });
+  }
+  try {
+    // check if user exists
+    const user = await User.findOne({ email });
+    // if user dosn't exist return error
+    if (!user) {
+      res.status(401).json({
+        message: "Login not successful",
+        error: "User not found",
+      });
+    }
+
+    // compare passwrods
+    const passwordIsValid = compare(password, user.password);
+
+    // check if password is valid
+    if (!passwordIsValid) {
+      return res.status(401).json({
+        accessToken: null,
+        message: "Invalid Password!",
+      });
+    }
+
+    //sign token with u
+    var token = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.API_SECRET,
+      {
+        expiresIn: 86400,
+      }
+    );
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+      message: "Login successfull",
+      accessToken: token,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { register, login };
