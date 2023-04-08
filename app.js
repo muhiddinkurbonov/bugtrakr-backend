@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const authRoutes = require('./routes/auth')
 const app = express();
+const cookieParser = require('cookie-parser');
 
 const PORT = process.env.PORT || 8000;
 
@@ -20,12 +21,12 @@ mongoose
     console.error("Error connecting to MongoDB:", error.message);
   });
 
-
+app.use(cookieParser(process.env.API_SECRET));
 app.use(express.json());
 
 
-app.use('/api/auth', authRoutes);
 
+app.use('/api/auth', authRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);

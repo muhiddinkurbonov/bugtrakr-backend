@@ -76,6 +76,13 @@ const login = async (req, res, next) => {
       }
     );
 
+    res.cookie("access_token", token, {
+      maxAge: 86400 * 1000, // cookie will expire after 24 hours
+      httpOnly: true, // cookie cannot be accessed via client-side script
+      secure: process.env.NODE_ENV === "production", // cookie will only be sent over HTTPS in production environment
+      signed: true
+    });
+
     res.status(200).json({
       user: {
         id: user._id,
@@ -93,4 +100,11 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login };
+const logout = (req, res, next) => {
+  res.clearCookie("access_token");
+  res.status(200).json({
+    message: "Logout successful",
+  });
+};
+
+module.exports = { register, login, logout };
