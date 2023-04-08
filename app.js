@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-
+const authRoutes = require('./routes/auth')
 const app = express();
 
 const PORT = process.env.PORT || 8000;
@@ -20,10 +20,15 @@ mongoose
     console.error("Error connecting to MongoDB:", error.message);
   });
 
-app.get("/test", (req, res) => {
-  res.send("Test");
-});
+
+app.use(express.json());
+
+
+app.use('/api/auth', authRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
+
+
