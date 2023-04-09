@@ -2,6 +2,8 @@ require("dotenv").config();
 const User = require("../models/User");
 const { hash, compare } = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
+
 const register = async (req, res, next) => {
   const { name, email, password } = req.body;
   if (password.length < 6) {
@@ -55,7 +57,7 @@ const login = async (req, res, next) => {
     }
 
     // compare passwrods
-    const passwordIsValid = compare(password, user.password);
+    const passwordIsValid = await compare(password, user.password);
 
     // check if password is valid
     if (!passwordIsValid) {
@@ -65,7 +67,7 @@ const login = async (req, res, next) => {
       });
     }
 
-    //sign token with u
+    //sign token with user ID and JWT secret and set it in a cookie to be used in subsequent requests
     var token = jwt.sign(
       {
         id: user._id,
@@ -76,12 +78,14 @@ const login = async (req, res, next) => {
       }
     );
 
+    res.cookie("access_token", token, {
+      maxAge: 86400 * 1000, // cookie will expire after 24 hours
+      httpOnly: true, // cookie cannot be accessed via client-side script
+      secure: process.env.NODE_ENV === "production", // cookie will only be sent over HTTPS in production environment
+      signed: true,
+    });
+
     res.status(200).json({
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-      },
       message: "Login successfull",
       accessToken: token,
     });
@@ -93,4 +97,20 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login };
+const logout = (req, res, next) => {
+  res.clearCookie("access_token");
+  res.status(200).json({
+    message: "Logout successful",
+  });
+};
+
+const validateToken = async (token) => {
+  try {
+    const decodedToken = jwt.verify(token, process.env.API_SECRET);
+    return decodedToken.id;
+  } catch (error) {
+    throw new Error("Invalid token");
+  }
+};
+
+module.exports = { register, login, logout, validateToken };
