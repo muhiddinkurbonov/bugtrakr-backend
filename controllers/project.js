@@ -41,4 +41,37 @@ const deleteProject = async (req, res) => {
   }
 }
 
-module.exports = {createProject, getProject, deleteProject}
+const addMember = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).send({ error: "Project not found" });
+    }
+
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).send({ error: "User not found" });
+    }
+
+    if (project.creator.toString() !== req.user._id.toString()) {
+      return res
+        .status(401)
+        .send({ error: "Only the project creator can add members" });
+    }
+
+    if (project.members.includes(user._id)) {
+      return res
+        .status(400)
+        .send({ error: "User is already a member of the project" });
+    }
+
+    project.members.push(user._id);
+    await project.save();
+
+    res.send(project);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+module.exports = {createProject, getProject, deleteProject, addMember}
