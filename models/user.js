@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     required: true
   },
+  projects: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project'
+  }],
   created_at: {
     type: Date,
     default: Date.now
