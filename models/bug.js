@@ -28,6 +28,11 @@ const bugSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Project",
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -38,4 +43,6 @@ const bugSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Bug", bugSchema);
+const Bug = mongoose.model("Bug", bugSchema);
+
+module.exports = Bug;
